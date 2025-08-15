@@ -48,7 +48,7 @@ await ctx.send(embed=embed)
 
 # INFO
 
-@bot.slash_command(name="info", description="Информация о поинтах проекта")
+@bot.slash_command(name="info", description="Информация о системе поинтов")
 async def info_points(inter):
 	if db is not None:
 		await db.users.update_one(
@@ -116,7 +116,7 @@ def has_allowed_role(ctx):
 
 # INVENTORY
 
-@bot.slash_command(name="inventory", description="Показать баланс поинтов пользователя и предметы")
+@bot.slash_command(name="inventory", description="Показать баланс пользователя и предметы")
 async def inventory(inter, name: str = None):
 	if db is None:
 		embed = disnake.Embed(description="База данных недоступна.", color=disnake.Color.blue())
@@ -135,7 +135,7 @@ async def inventory(inter, name: str = None):
 			user_id = str(member.id)
 			display_name = member.display_name
 		else:
-			embed = disnake.Embed(description=f"У пользователя с именем '{name}' 0 поинтов.", color=disnake.Color.blue())
+			embed = disnake.Embed(description=f"У пользователя с именем '{name}' **0** поинтов.", color=disnake.Color.blue())
 			await inter.response.send_message(embed=embed)
 			return
 	user = await db.users.find_one({"user_id": user_id})
@@ -143,9 +143,9 @@ async def inventory(inter, name: str = None):
 	items = user.get("items", []) if user else []
 	if items:
 		items_str = "\n".join(f"- {item}" for item in items)
-		desc = f"У пользователя {display_name} {points} поинтов.\n\n**Предметы:**\n{items_str}"
+		desc = f"У пользователя {display_name} **{points}** поинтов.\n\n**Предметы:**\n{items_str}"
 	else:
-		desc = f"У пользователя {display_name} {points} поинтов.\n\n**Предметов нет.**"
+		desc = f"У пользователя {display_name} **{points}** поинтов.\n\n**Предметов нет.**"
 	embed = disnake.Embed(description=desc, color=disnake.Color.blue())
 	await inter.response.send_message(embed=embed)
 
@@ -202,7 +202,7 @@ class LeaderboardView(ui.View):
 			await inter.response.defer()
 
 
-@bot.slash_command(name="leaderboard", description="Топ пользователей по поинтам")
+@bot.slash_command(name="leaderboard", description="Топ пользователей по количеству поинтам")
 async def leaderboard(inter):
 	if db is None:
 		embed = disnake.Embed(description="База данных недоступна.", color=disnake.Color.red())
@@ -341,7 +341,7 @@ async def shop_command(inter):
 			"Здесь вы можете выбрать класс предметов с помощью выпадающего меню.\n"
 			"\n"
 			"- Используйте меню для выбора класса.\n"
-			"- Если предметов больше 7 — используйте кнопки ⬅️ ➡️ для перелистывания страниц.\n"
+			"- Если предметов больше 7 — воспользуйтесь ⬅️ ➡️ кнопками для перелистывания страниц.\n"
 			"\nНажмите кнопку ниже, чтобы открыть магазин."
 		),
 		color=disnake.Color.green()
@@ -349,7 +349,7 @@ async def shop_command(inter):
 	view = ShopWelcomeView(inter.author.id, all_items, tags)
 	await inter.response.send_message(embed=welcome_embed, view=view, ephemeral=False)
 
-@bot.slash_command(name="buy", description="Купить предмет в магазине по названию")
+@bot.slash_command(name="buy", description="Приобрести предмет в магазине")
 async def buy_item(inter, name: str):
     if db is None:
         embed = disnake.Embed(description="База данных недоступна.", color=disnake.Color.blue())
@@ -364,16 +364,16 @@ async def buy_item(inter, name: str):
     items = user.get("items", [])
     item = await db["shop/docunets"].find_one({"name": name})
     if not item:
-        embed = disnake.Embed(description=f"Предмет '{name}' не найден в магазине.", color=disnake.Color.blue())
+        embed = disnake.Embed(description=f"Предмет '{name}' не найден.", color=disnake.Color.blue())
         await inter.response.send_message(embed=embed, ephemeral=True)
         return
     price = item.get("price", 0)
     if points < price:
-        embed = disnake.Embed(description=f"Недостаточно поинтов для покупки '{name}'. Нужно: {price}, у вас: {points}.", color=disnake.Color.blue())
+        embed = disnake.Embed(description=f"Недостаточно средств для покупки '{name}'. Нужно: **{price}**, у вас: **{points}**.", color=disnake.Color.blue())
         await inter.response.send_message(embed=embed, ephemeral=True)
         return
     if name in items:
-        embed = disnake.Embed(description=f"У вас уже есть предмет '{name}'.", color=disnake.Color.blue())
+        embed = disnake.Embed(description=f"У вас уже есть предмет '{name}'!.", color=disnake.Color.blue())
         await inter.response.send_message(embed=embed, ephemeral=True)
         return
     await db.users.update_one({"user_id": user_id}, {"$inc": {"points": -price}, "$push": {"items": name}})
@@ -397,7 +397,7 @@ async def buy_item(inter, name: str):
                 role_error = str(e)
         else:
             role_error = f"Роль '{role_id_or_name}' не найдена."
-    msg = f"Вы успешно купили '{name}' за {price} поинтов!"
+    msg = f"Вы успешно купили '{name}' за **{price}** поинтов!"
     if role_given:
         msg += f"\nВам выдана роль: {role_obj.mention}"
     elif role_error:
@@ -428,13 +428,13 @@ async def pay_points(inter, member: disnake.Member, points: int):
 	else:
 		await db.users.update_one({"user_id": receiver_id}, {"$inc": {"points": points}})
 	await db.users.update_one({"user_id": sender_id}, {"$inc": {"points": -points}})
-	embed = disnake.Embed(description=f"Вы передали {points} поинтов пользователю {member.mention}!", color=disnake.Color.blue())
+	embed = disnake.Embed(description=f"Вы передали **{points}** поинтов пользователю {member.mention}!", color=disnake.Color.blue())
 	await inter.response.send_message(embed=embed)
 
 # ADMINS
 # POINTS
 
-@bot.slash_command(name="add_points", description="Добавить поинты пользователю")
+@bot.slash_command(name="add_points", description="Выдать поинты пользователю")
 async def add_points_slash(inter, member: disnake.Member, points: int = 1):
 	if not (inter.author.guild_permissions.administrator or any(role.id in ALLOWED_ROLE_IDS for role in inter.author.roles)):
 		embed = disnake.Embed(description="У вас нет прав для использования этой команды.", color=disnake.Color.blue())
@@ -448,15 +448,15 @@ async def add_points_slash(inter, member: disnake.Member, points: int = 1):
 	user = await db.users.find_one({"user_id": user_id})
 	if user:
 		await db.users.update_one({"user_id": user_id}, {"$inc": {"points": points}})
-		embed = disnake.Embed(description=f"Пользователю {member.mention} добавлено {points} поинтов!", color=disnake.Color.blue())
+		embed = disnake.Embed(description=f"Пользователю {member.mention} добавлено **{points}** поинтов!", color=disnake.Color.blue())
 		await inter.response.send_message(embed=embed)
 	else:
 		await db.users.insert_one({"user_id": user_id, "points": points})
-		embed = disnake.Embed(description=f"У пользователя {member.mention} 0 поинтов.", color=disnake.Color.blue())
+		embed = disnake.Embed(description=f"У пользователя {member.mention} **0** поинтов.", color=disnake.Color.blue())
 		await inter.response.send_message(embed=embed)
 
 
-@bot.slash_command(name="remove_points", description="Снять поинты у пользователя")
+@bot.slash_command(name="remove_points", description="Отнять поинты у пользователя")
 async def remove_points_slash(inter, member: disnake.Member, points: int = 1):
 	if not (inter.author.guild_permissions.administrator or any(role.id in ALLOWED_ROLE_IDS for role in inter.author.roles)):
 		embed = disnake.Embed(description="У вас нет прав для использования этой команды.", color=disnake.Color.blue())
@@ -472,11 +472,11 @@ async def remove_points_slash(inter, member: disnake.Member, points: int = 1):
 		current_points = user.get("points", 0)
 		remove = min(abs(points), current_points)
 		await db.users.update_one({"user_id": user_id}, {"$inc": {"points": -remove}})
-		embed = disnake.Embed(description=f"У пользователя {member.mention} отнято {remove} поинтов!", color=disnake.Color.blue())
+		embed = disnake.Embed(description=f"У пользователя {member.mention} успешно отнято **{remove}** поинтов!", color=disnake.Color.blue())
 		await inter.response.send_message(embed=embed)
 	else:
 		await db.users.insert_one({"user_id": user_id, "points": 0})
-		embed = disnake.Embed(description=f"У пользователя {member.mention} 0 поинтов.", color=disnake.Color.blue())
+		embed = disnake.Embed(description=f"У пользователя {member.mention} **0** поинтов.", color=disnake.Color.blue())
 		await inter.response.send_message(embed=embed)
 
 # ITEMS
@@ -501,7 +501,7 @@ async def add_item(inter, name: str, price: int, tag: str, role: str = None):
         doc["role"] = role
     await db["shop/docunets"].insert_one(doc)
     role_text = f" (Роль: {role})" if role else ""
-    embed = disnake.Embed(description=f"Предмет '{name}' добавлен в магазин за {price} поинтов! (Класс: {tag}){role_text}", color=disnake.Color.blue())
+    embed = disnake.Embed(description=f"Предмет '{name}' успешно добавлен в магазин за **{price}** поинтов! (Класс: {tag}){role_text}", color=disnake.Color.blue())
     await inter.response.send_message(embed=embed)
 
 @bot.slash_command(name="remove_item", description="Удалить предмет из магазина")
@@ -536,7 +536,7 @@ async def remove_item(inter, name: str):
 # 	user_id = str(member.id)
 # 	result = await db.users.delete_one({"user_id": user_id})
 # 	if result.deleted_count:
-# 		embed = disnake.Embed(description=f"Пользователь {member.mention} удалён из базы!", color=disnake.Color.blue())
+# 		embed = disnake.Embed(description=f"Пользователь {member.mention} успешно удалён из базы!", color=disnake.Color.blue())
 # 	else:
 # 		embed = disnake.Embed(description=f"Пользователь {member.mention} не найден в базе.", color=disnake.Color.blue())
 # 	await inter.response.send_message(embed=embed)
