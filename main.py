@@ -39,7 +39,7 @@ async def on_ready():
 
 @bot.slash_command(name="help", description="Показать справку по командам")
 async def help_command(inter):
-	embed = disnake.Embed(title="Помощь по командам", color=disnake.Color.blue())
+	embed = disnake.Embed(color=disnake.Color.blue())
 	embed.add_field(
 		name="Команды",
 		value=(
