@@ -39,32 +39,12 @@ async def on_ready():
 
 @bot.slash_command(name="help", description="Показать справку по командам")
 async def help_command(inter):
-	embed = disnake.Embed(color=disnake.Color.blue())
-	embed.add_field(
-		name="Команды",
-		value=(
-			"/help — Показать это сообщение\n"
-			"/info — Информация о поинтах\n"
-			"/inventory [имя] — Показать баланс поинтов (своих или другого игрока по имени)\n"
-			"/leaderboard — Топ пользователей по поинтам\n"
-			"/buy [название] — Купить предмет в магазине\n"
-			"/pay [пользователь] [кол-во] — Перевести поинты другому пользователю\n"
-			"/shop — Открыть магазин"
-		),
-		inline=False
-	)
-	embed.add_field(
-		name="Админские команды",
-		value=(
-			"/add-points @user [кол-во] — Добавить поинты пользователю\n"
-			"/remove-points @user [кол-во] — Снять поинты у пользователя\n"
-			"/add-item [название] [кол-во] [тег] — Добавить предмет в магазин\n"
-			"/remove-item [название] — Удалить предмет из магазина\n"
-		),
-		inline=False
-	)
-	embed.set_footer(text="Crest Conquerors Bot")
-	await inter.response.send_message(embed=embed)
+	embed = discord.Embed(description="# Справка по командам\n### Crest Conquerors Bot\n\nㅤㅤㅤㅤㅤㅤㅤㅤ**Основные команды**\n- **`/help`** — Вывести данное справочное сообщение\n- **`/info`** — Отобразить сведения об системы поинтов, способы заработка и другая прочая информация\n- **`/inventory`** **`[user]`** — Просмотр баланса и список приобретенных предметов с магазина (собственный или другого участника)\n- **`/leaderboard`** — Таблица лидеров по количеству поинтов\n- **`/buy`** **`[name]`** — Приобрести предмет в магазине\n- **`/pay`** **`[user]`** **`[amount]`** — Передать поинты другому пользователю\n- **`/shop`** — Открыть витрину магазина\n\nㅤㅤㅤㅤㅤㅤㅤ**Административные команды**\n- **`/add-points`** **`user`** **`[amount]`** — Начислить поинты указанному пользователю\n- **`/remove-points`** **`user`** **`[amount]`** — Отнять поинты у пользователя\n- **`/add-item`** **`[name]`** **`[amount]`** **`[class name]`** — Добавить предмет в магазин \n- **`/remove-item`** **`[name]`** — Удалить предмет из магазина",
+                      colour=0x00b0f4)
+
+embed.set_footer(text="Crest Conquerors")
+
+await ctx.send(embed=embed)
 
 # INFO
 
